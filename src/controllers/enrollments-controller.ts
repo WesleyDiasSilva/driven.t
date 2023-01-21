@@ -16,6 +16,8 @@ export async function getEnrollmentByUser(req: AuthenticatedRequest, res: Respon
 }
 
 export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, res: Response) {
+  const cep: string = req.body.address.cep;
+  if(cep.includes(" ") || cep.length != 9) return res.sendStatus(httpStatus.BAD_REQUEST);
   try {
     await enrollmentsService.createOrUpdateEnrollmentWithAddress({
       ...req.body,
