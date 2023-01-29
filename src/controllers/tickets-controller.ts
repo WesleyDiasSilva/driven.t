@@ -29,7 +29,6 @@ export async function postTicket(req: AuthenticatedRequest, res: Response) {
     const user_id = req.userId;
     const { ticketTypeId } = req.body as bodyTicketTypeId;
     const ticket = await serviceCreateTicket(user_id, ticketTypeId);
-    console.log("AQUI ", ticket);
     return res.status(httpStatus.CREATED).send(ticket);
   }catch (error) {
     return res.sendStatus(httpStatus.NOT_FOUND);

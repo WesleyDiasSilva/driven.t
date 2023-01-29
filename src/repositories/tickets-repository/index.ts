@@ -6,6 +6,15 @@ async function getTicketsTypes() {
   return types;
 }
 
+async function getTicketById(id: number) {
+  return prisma.ticket.findFirst({
+    where: { id },
+    include: {
+      Enrollment: { include: { User: { select: { id: true } } } },
+    },
+  });
+}
+
 async function getTicketUser(id: number) {
   const ticket = await prisma.ticket.findFirst({
     where: {
@@ -24,11 +33,11 @@ async function getTicketUser(id: number) {
           isRemote: true,
           includesHotel: true,
           createdAt: true,
-          updatedAt: true
+          updatedAt: true,
         },
       },
       createdAt: true,
-      updatedAt: true
+      updatedAt: true,
     },
   });
   return ticket;
@@ -39,15 +48,16 @@ async function createTicket(newTicket: newTicket) {
     data: {
       status: newTicket.status,
       enrollmentId: newTicket.enrollmentId,
-      ticketTypeId: newTicket.ticketTypeId
-    }
+      ticketTypeId: newTicket.ticketTypeId,
+    },
   });
 }
 
 const ticketsRepository = {
   getTicketsTypes,
   getTicketUser,
-  createTicket
+  createTicket,
+  getTicketById,
 };
 
 export default ticketsRepository;

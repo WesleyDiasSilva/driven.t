@@ -27,10 +27,18 @@ export function handleApplicationErrors(err: ApplicationError | Error, _req: Req
     });
   }
 
+  if(err.name === "notAllowed") {
+    return res.sendStatus(httpStatus.UNAUTHORIZED);
+  }
+
   if (err.name === "NotFoundError") {
     return res.status(httpStatus.NOT_FOUND).send({
       message: err.message,
     });
+  }
+
+  if(err.name === "InvalidDataError") {
+    return res.sendStatus(httpStatus.BAD_REQUEST);
   }
 
   /* eslint-disable-next-line no-console */
