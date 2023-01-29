@@ -28,3 +28,9 @@ export type RequestError = {
   name: string,
   message: string,
 };
+
+export type newTicket = {
+  ticketTypeId: number;
+  enrollmentId: number;
+  status: "RESERVED" | "PAID";
+}
