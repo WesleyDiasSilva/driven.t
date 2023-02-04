@@ -43,8 +43,7 @@ describe("GET /hotels", () => {
         name: expect.any(String),
         image: expect.any(String),
         createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-        Rooms: expect.any(Array),
+        updatedAt: expect.any(String)
       })
     ]));
   });
@@ -152,3 +151,150 @@ describe("GET /hotels", () => {
   });
 });
 
+describe("GET /hotels/:id", () => {
+  it("Should respond with status 200 and list rooms in hotel", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+    const enrollment = await createEnrollmentWithAddress(user);
+    const ticketType = await createTicketType();
+    await prisma.ticketType.update({
+      data: {
+        includesHotel: true,
+        isRemote: false
+      },
+      where: {
+        id: ticketType.id
+      }
+    });
+    await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+    await createHotelsDB();
+    const { id } = await prisma.hotel.findFirst();
+    const result = await server.get("/hotels/"+id).set("authorization", "Bearer "+token);
+
+    expect(result.statusCode).toBe(httpStatus.OK);
+    expect(result.body).toEqual(expect.objectContaining({
+      createdAt: expect.any(String),
+      id: expect.any(Number),
+      image: expect.any(String),
+      name: expect.any(String),
+      updatedAt: expect.any(String),
+      Rooms: expect.arrayContaining([
+        expect.objectContaining({
+          id: expect.any(Number),
+          name: expect.any(String),
+          capacity: expect.any(Number),
+          hotelId: expect.any(Number),
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        })
+      ]),
+    }));
+  });
+
+  it("Should respond with status 404 when not exists enrollment", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+    await createHotelsDB();
+    const { id } = await prisma.hotel.findFirst();
+    const result = await server.get("/hotels/"+id).set("authorization", "Bearer "+token);
+
+    expect(result.statusCode).toBe(httpStatus.NOT_FOUND);
+  });
+
+  it("Should respond with status 404 when not exists ticket", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+    const enrollment = await createEnrollmentWithAddress(user);
+    await createHotelsDB();
+    const { id } = await prisma.hotel.findFirst();
+    const result = await server.get("/hotels/"+id).set("authorization", "Bearer "+token);
+
+    expect(result.statusCode).toBe(httpStatus.NOT_FOUND);
+  });
+
+  it("Should respond with status 404 when id hotel not exists", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+    const enrollment = await createEnrollmentWithAddress(user);
+    const ticketType = await createTicketType();
+    await prisma.ticketType.update({
+      data: {
+        includesHotel: true,
+        isRemote: false
+      },
+      where: {
+        id: ticketType.id
+      }
+    });
+    await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+    const result = await server.get("/hotels/"+0).set("authorization", "Bearer "+token);
+
+    expect(result.statusCode).toBe(httpStatus.NOT_FOUND);
+  });
+
+  it("Should respond with status 402 when ticket has not been paid", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+    const enrollment = await createEnrollmentWithAddress(user);
+    const ticketType = await createTicketType();
+    await prisma.ticketType.update({
+      data: {
+        includesHotel: true,
+        isRemote: false
+      },
+      where: {
+        id: ticketType.id
+      }
+    });
+    await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
+    await createHotelsDB();
+    const { id } = await prisma.hotel.findFirst();
+    const result = await server.get("/hotels/"+id).set("authorization", "Bearer "+token);
+
+    expect(result.statusCode).toBe(402);
+  });
+
+  it("Should respond with status 402 when ticket is remote", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+    const enrollment = await createEnrollmentWithAddress(user);
+    const ticketType = await createTicketType();
+    await prisma.ticketType.update({
+      data: {
+        includesHotel: true,
+        isRemote: true
+      },
+      where: {
+        id: ticketType.id
+      }
+    });
+    await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+    await createHotelsDB();
+    const { id } = await prisma.hotel.findFirst();
+    const result = await server.get("/hotels/"+id).set("authorization", "Bearer "+token);
+    
+    expect(result.statusCode).toBe(httpStatus.PAYMENT_REQUIRED);
+  });
+
+  it("Should respond with status 402 when doesn't include hotel", async () => {
+    const user = await createUser();
+    const token = await generateValidToken(user);
+    const enrollment = await createEnrollmentWithAddress(user);
+    const ticketType = await createTicketType();
+    await prisma.ticketType.update({
+      data: {
+        includesHotel: false,
+        isRemote: true
+      },
+      where: {
+        id: ticketType.id
+      }
+    });
+    await createTicket(enrollment.id, ticketType.id, TicketStatus.RESERVED);
+    await createHotelsDB();
+    const { id } = await prisma.hotel.findFirst();
+    const result = await server.get("/hotels/"+id).set("authorization", "Bearer "+token);
+
+    expect(result.statusCode).toBe(httpStatus.PAYMENT_REQUIRED);
+  });
+});

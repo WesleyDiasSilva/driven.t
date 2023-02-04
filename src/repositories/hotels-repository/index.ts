@@ -1,7 +1,11 @@
 import { prisma } from "@/config";
 
 async function getHotels() {
-  return await prisma.hotel.findMany({
+  return await prisma.hotel.findMany();
+}
+
+async function getHotelById(id: number) {
+  return await prisma.hotel.findFirst({
     select: {
       id: true,
       name: true,
@@ -18,12 +22,16 @@ async function getHotels() {
           updatedAt: true
         }
       }
+    },
+    where: {
+      id
     }
   });
 }
 
 const hotelRepository = {
-  getHotels
+  getHotels,
+  getHotelById
 };
 
 export default hotelRepository;
