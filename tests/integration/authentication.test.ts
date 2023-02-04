@@ -80,7 +80,7 @@ describe("POST /auth/sign-in", () => {
         await createUser(body);
 
         const response = await server.post("/auth/sign-in").send(body);
-
+        
         expect(response.body.token).toBeDefined();
       });
     });
