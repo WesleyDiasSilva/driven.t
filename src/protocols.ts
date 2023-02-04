@@ -34,3 +34,16 @@ export type newTicket = {
   enrollmentId: number;
   status: "RESERVED" | "PAID";
 }
+
+type cardData = {
+  isseuer: string;
+  number: string;
+  name: string;
+  expirationDate: Date;
+  cvv: number;
+}
+
+export type newPayment = {
+  ticketId: number,
+  cardData: cardData
+}
