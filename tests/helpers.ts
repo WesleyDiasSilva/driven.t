@@ -1,12 +1,13 @@
-import * as jwt from "jsonwebtoken";
 import { User } from "@prisma/client";
+import * as jwt from "jsonwebtoken";
 
-import { createUser } from "./factories";
-import { createSession } from "./factories/sessions-factory";
 import { prisma } from "@/config";
 import faker from "@faker-js/faker";
+import { createUser } from "./factories";
+import { createSession } from "./factories/sessions-factory";
 
 export async function cleanDb() {
+  await prisma.booking.deleteMany({});
   await prisma.address.deleteMany({});
   await prisma.payment.deleteMany({});
   await prisma.ticket.deleteMany({});
@@ -46,6 +47,24 @@ export async function createHotels() {
   });
 }
 
+export async function createRoomWithoutCapacity() {
+  const hotels = await prisma.hotel.findMany();
+  await prisma.room.createMany({ data: [
+    {
+      hotelId: hotels[0].id,
+      name: faker.name.firstName(),
+      capacity: 0,
+    },
+    {
+      hotelId: hotels[1].id,
+      name: faker.name.firstName(),
+      capacity: 0,
+    },
+  ]
+
+  });
+}
+
 export async function createRooms() {
   const hotels = await prisma.hotel.findMany();
   await prisma.room.createMany({ data: [
@@ -61,4 +80,8 @@ export async function createRooms() {
     },
   ]
   });
+}
+
+export async function findRooms() {
+  return prisma.room.findMany();
 }

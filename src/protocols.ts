@@ -49,3 +49,7 @@ export type newPayment = {
   ticketId: number,
   cardData: cardData
 }
+
+export type newBooking = {
+  roomId: number
+}
