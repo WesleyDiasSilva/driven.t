@@ -61,7 +61,6 @@ export async function createRoomWithoutCapacity() {
       capacity: 0,
     },
   ]
-
   });
 }
 
@@ -80,6 +79,12 @@ export async function createRooms() {
     },
   ]
   });
+}
+
+export async function findRoomsWithoutVacancy() {
+  return prisma.room.findMany({ where: {
+    capacity: 0
+  } });
 }
 
 export async function findRooms() {

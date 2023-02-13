@@ -29,5 +29,16 @@ export async function createBooking(req: AuthenticatedRequest, res: Response) {
 }
 
 export async function updateBooking(req: AuthenticatedRequest, res: Response) {
-  return 0;
+  try{
+    const userId = req.userId;
+    const { roomId } = req.body as newBooking;
+    const bookingId = parseInt(req.params.bookingId);
+    await serviceBooking.updateBooking(userId, roomId, bookingId);
+    res.sendStatus(httpStatus.OK);
+  }catch (err) {
+    if(err.name === "NotFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+    res.sendStatus(httpStatus.FORBIDDEN);
+  }
 }

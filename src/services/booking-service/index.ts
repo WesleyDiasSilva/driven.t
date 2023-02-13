@@ -1,9 +1,7 @@
 import { notFoundError } from "@/errors";
 import { forbiddenError } from "@/errors/forbidden-error";
 import bookingRepository from "@/repositories/booking-repository";
-import paymentRepository from "@/repositories/payment-repository";
 import repositoryRoom from "@/repositories/rooms-repository";
-import ticketRepository from "@/repositories/ticket-repository";
 import ticketsRepository from "@/repositories/tickets-repository";
 
 async function getBookings(userId: number) {
@@ -23,9 +21,21 @@ async function createBooking(userId: number, roomId: number) {
   await bookingRepository.includesUserInRoom(userId, roomId);
 }
 
+async function updateBooking(userId: number, roomId: number, bookingId: number) {
+  const bookingExists = await bookingRepository.findBookingById(bookingId);
+  if(!bookingExists) throw forbiddenError("You need have a booking!");
+  if(bookingExists.userId !== userId) throw forbiddenError("Unauthorized");
+
+  const room = await repositoryRoom.findRoomById(roomId);
+  if(!room) throw notFoundError();
+  if(room.capacity < 1) throw forbiddenError("There are no vacanies in this room");
+  await bookingRepository.updateBooking(bookingId, roomId);
+}
+
 const serviceBooking = {
   getBookings,
-  createBooking
+  createBooking,
+  updateBooking
 };
 
 export default serviceBooking;
